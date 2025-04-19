@@ -88,3 +88,6 @@ game:GetService("UserInputService").InputBegan:Connect(function(input)
         ui:toggle()  -- Toggle UI visibility
     end
 end)
+
+
+# PLEASE DONT MIDN THE FUALTY COPY BUTTON ON THE README.DM #
