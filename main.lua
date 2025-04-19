@@ -1,13 +1,11 @@
-local repo = "https://yourcdn.com/uimaker" -- or your raw GitHub or website
+local base = "https://raw.githubusercontent.com/prolokmnY/rblx_gui/refs/heads/main"
 
-local ui = loadstring(game:HttpGet(repo .. "/ui.lua"))()
-local notify = loadstring(game:HttpGet(repo .. "/notifications.lua"))()
+local ui = loadstring(game:HttpGet(base .. "/ui.lua"))()
+local notify = loadstring(game:HttpGet(base .. "/notifications.lua"))()
 
--- Setup UI
 ui:setup()
-notify:notify("Loaded!", "Your UI is ready.", 3)
+notify:notify("✅ UI Loaded SECSEFULY!", "Made by Prolokmn", 3)
 
--- Optionally export both
 return {
     ui = ui,
     notify = notify
