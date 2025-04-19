@@ -24,7 +24,7 @@ You can either clone or download the repository to your local machine.
 To clone:
 ```bash
 git clone https://github.com/prolokmnY/rblx_gui.git
-'''
+```
 
 To download, click the green "Code" button and select "Download ZIP."
 2. Setup Instructions
