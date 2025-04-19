@@ -35,7 +35,7 @@ local modules = loadstring(game:HttpGet("https://raw.githubusercontent.com/prolo
 local ui = modules.ui
 local notify = modules.notify
 ```
-```
+
     Setting up the UI:
 
 ui:setup()
@@ -45,46 +45,44 @@ ui:setup()
 
         You can set a custom title and the size of the UI:
 ```
-```
+
 ui:setConfig({
     title = "Super Cool UI",  -- Custom title for your UI
     width = 300,              -- Width of the UI
     height = 340              -- Height of the UI
 })
 ```
-```
     Adding Buttons:
 
     To add a button with an action, use the addButton method:
 ```
-```
+
 ui:addButton("Say Hi", function()
     notify:notify("Hey!", "You clicked the button", 3)
 end, { icon = "💬" }) -- a cool icon or not? 
 ```
-```
+
     Adding Sliders:
 
     To add a slider (for example, for controlling the fly speed):
-```
 ```
 ui:addSlider("Fly Speed", function(value)
     print("Fly Speed:", value)
 end, { min = 50, max = 300 })
 ```
-```
+
     Adding Music:
 
     To add a music track to your UI:
 ```
 ui:addMusic(184012138)  -- Replace with the track ID you want to use
 ```
-```
+
     Toggle UI Visibility:
 
     You can use the Right Shift key to toggle the visibility of the UI:
 ```
-```
+
 game:GetService("UserInputService").InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.RightShift then
         ui:toggle()  -- Toggle UI visibility
