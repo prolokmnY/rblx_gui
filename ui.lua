@@ -10,24 +10,28 @@ screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
+local config = {
+	width = 270,
+	height = 320,
+	title = "UI Maker",
+}
+
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 270, 0, 320)
-main.Position = UDim2.new(0.5, -135, 0.5, -160)
+main.Size = UDim2.new(0, config.width, 0, config.height)
+main.Position = UDim2.new(0.5, -config.width/2, 0.5, -config.height/2)
 main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 main.BackgroundTransparency = 0.1
 main.BorderSizePixel = 0
 main.Active = true
 main.Name = "MainUI"
 main.Parent = screenGui
-
-local round = Instance.new("UICorner", main)
-round.CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
 
 -- Title Bar
 local titleBar = Instance.new("TextLabel")
 titleBar.Size = UDim2.new(1, 0, 0, 30)
 titleBar.BackgroundTransparency = 1
-titleBar.Text = "UI Maker"
+titleBar.Text = config.title
 titleBar.TextColor3 = Color3.new(1,1,1)
 titleBar.Font = Enum.Font.GothamBold
 titleBar.TextSize = 16
@@ -73,11 +77,14 @@ UIS.InputChanged:Connect(function(input)
 	end
 end)
 
--- Content container
-local container = Instance.new("Frame")
+-- Scrollable container
+local container = Instance.new("ScrollingFrame")
 container.Size = UDim2.new(1, -10, 1, -40)
 container.Position = UDim2.new(0, 5, 0, 35)
 container.BackgroundTransparency = 1
+container.CanvasSize = UDim2.new(0, 0, 0, 0)
+container.ScrollBarThickness = 5
+container.AutomaticCanvasSize = Enum.AutomaticSize.Y
 container.ClipsDescendants = true
 container.Parent = main
 
@@ -162,7 +169,7 @@ function ui:toggle()
 	main.Visible = not main.Visible
 end
 
--- STYLING
+-- STYLE
 function ui:setStyle(opts)
 	opts = opts or {}
 	main.BackgroundTransparency = opts.transparency or 0.1
@@ -172,7 +179,18 @@ function ui:setStyle(opts)
 	end
 end
 
--- INIT
+-- SET TITLE / SIZE
+function ui:setConfig(opts)
+	opts = opts or {}
+	if opts.title then
+		titleBar.Text = opts.title
+	end
+	if opts.width and opts.height then
+		main.Size = UDim2.new(0, opts.width, 0, opts.height)
+		main.Position = UDim2.new(0.5, -opts.width / 2, 0.5, -opts.height / 2)
+	end
+end
+
 function ui:setup()
 	main.Visible = true
 end
