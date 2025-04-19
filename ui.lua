@@ -41,7 +41,7 @@ titleBar.Parent = main
 local padding = Instance.new("UIPadding", titleBar)
 padding.PaddingLeft = UDim.new(0, 10)
 
--- X Button
+-- X Button (hide)
 local xBtn = Instance.new("TextButton")
 xBtn.Text = "X"
 xBtn.Size = UDim2.new(0, 30, 0, 30)
@@ -56,6 +56,23 @@ Instance.new("UICorner", xBtn).CornerRadius = UDim.new(0, 6)
 xBtn.MouseButton1Click:Connect(function()
 	main.Visible = false
 end)
+
+-- ! Button (unload/destroy UI)
+local bangBtn = Instance.new("TextButton")
+bangBtn.Text = "!"
+bangBtn.Size = UDim2.new(0, 30, 0, 30)
+bangBtn.Position = UDim2.new(1, -60, 0, 0)
+bangBtn.BackgroundColor3 = Color3.fromRGB(255, 180, 0)
+bangBtn.TextColor3 = Color3.new(1,1,1)
+bangBtn.Font = Enum.Font.GothamBold
+bangBtn.TextSize = 16
+bangBtn.Parent = main
+Instance.new("UICorner", bangBtn).CornerRadius = UDim.new(0, 6)
+
+bangBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
 
 -- Drag system
 local dragging = false
