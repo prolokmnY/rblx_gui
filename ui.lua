@@ -8,9 +8,9 @@ local SoundService = game:GetService("SoundService")
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "EZ_UI"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Base UI Frame
+-- Main UI Frame
 local main = Instance.new("Frame")
 main.Size = UDim2.new(0, 250, 0, 300)
 main.Position = UDim2.new(0.5, -125, 0.5, -150)
@@ -20,7 +20,12 @@ main.BackgroundTransparency = 0.1
 main.Name = "MainUI"
 main.Parent = screenGui
 
--- Make draggable
+-- Round corners
+local round = Instance.new("UICorner")
+round.CornerRadius = UDim.new(0, 10)
+round.Parent = main
+
+-- Drag logic
 local dragging, offset
 main.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -39,29 +44,38 @@ UIS.InputEnded:Connect(function(input)
 	end
 end)
 
--- UI elements container
+-- Layout
 local layout = Instance.new("UIListLayout")
 layout.Padding = UDim.new(0, 5)
 layout.Parent = main
 
--- BUTTON CREATOR
-function ui:addButton(text, callback)
+-- BUTTON (with optional icon, transparency, round)
+function ui:addButton(text, callback, options)
+	options = options or {}
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, -10, 0, 40)
 	btn.Position = UDim2.new(0, 5, 0, 0)
 	btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.Text = text
+	btn.Text = options.icon and ("🔹 " .. text) or text
 	btn.Font = Enum.Font.Gotham
 	btn.TextSize = 16
 	btn.AutoButtonColor = true
+	btn.BackgroundTransparency = options.transparency or 0
 	btn.Parent = main
+
+	if options.rounded ~= false then
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 6)
+		c.Parent = btn
+	end
 
 	btn.MouseButton1Click:Connect(callback)
 end
 
--- SLIDER (0 to 100)
-function ui:addSlider(title, callback)
+-- SLIDER
+function ui:addSlider(title, callback, options)
+	options = options or {}
 	local frame = Instance.new("Frame")
 	frame.Size = UDim2.new(1, -10, 0, 40)
 	frame.BackgroundTransparency = 1
@@ -82,7 +96,14 @@ function ui:addSlider(title, callback)
 	slider.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 	slider.Text = ""
 	slider.AutoButtonColor = false
+	slider.BackgroundTransparency = options.transparency or 0
 	slider.Parent = frame
+
+	if options.rounded ~= false then
+		local c = Instance.new("UICorner")
+		c.CornerRadius = UDim.new(0, 6)
+		c.Parent = slider
+	end
 
 	local value = 0
 	slider.MouseButton1Down:Connect(function()
@@ -99,7 +120,7 @@ function ui:addSlider(title, callback)
 	end)
 end
 
--- MUSIC PLAYER
+-- MUSIC
 function ui:addMusic(soundId)
 	local s = Instance.new("Sound")
 	s.SoundId = "rbxassetid://" .. soundId
@@ -110,14 +131,24 @@ function ui:addMusic(soundId)
 	s:Play()
 end
 
--- TOGGLE SHOW/HIDE UI
+-- TOGGLE SHOW/HIDE
 function ui:toggle()
 	main.Visible = not main.Visible
 end
 
--- SETUP FUNCTION (optional, not required)
+-- OPTIONAL SETUP
 function ui:setup()
 	main.Visible = true
+end
+
+-- Allow changing corner radius & transparency globally
+function ui:setStyle(opts)
+	if opts.transparency then
+		main.BackgroundTransparency = opts.transparency
+	end
+	if opts.rounded == false then
+		main:FindFirstChildWhichIsA("UICorner"):Destroy()
+	end
 end
 
 return ui
