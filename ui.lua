@@ -1,193 +1,199 @@
--- Encapsulate in a local environment
-local _ENV = setmetatable({}, {__index = getfenv()})
-
-local UIS = game:GetService("UserInputService")
+local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
-local SecureUI = {}
+local ui = {}
+local dragging = false
+local dragInput, dragStart, startPos
+local elements = {}
+local open = true
 
-local mainUI
 local config = {
-	title = "UI",
-	width = 300,
-	height = 340,
-	visible = true
+    title = "UI Library",
+    width = 300,
+    height = 340,
+    transparency = 0.05,
+    cornerRadius = UDim.new(0, 10)
 }
 
-local elements = {}
-local dragging = false
-local inputStart, dragStart
+-- Create UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "UILib"
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ResetOnSpawn = false
 
-function SecureUI:setup()
-	if mainUI then return end
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, config.width, 0, config.height)
+Main.Position = UDim2.new(0.5, -config.width/2, 0.5, -config.height/2)
+Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Main.BackgroundTransparency = config.transparency
+Main.Active = true
+Main.Draggable = true
+Main.Parent = ScreenGui
 
-	mainUI = Instance.new("ScreenGui")
-	mainUI.Name = "SecureUI_" .. math.random(1000,9999)
-	mainUI.ResetOnSpawn = false
-	mainUI.IgnoreGuiInset = true
-	mainUI.Parent = game:GetService("CoreGui")
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = config.cornerRadius
+UICorner.Parent = Main
 
-	local frame = Instance.new("Frame", mainUI)
-	frame.Size = UDim2.new(0, config.width, 0, config.height)
-	frame.Position = UDim2.new(0.5, -config.width / 2, 0.5, -config.height / 2)
-	frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-	frame.BorderSizePixel = 0
-	frame.Name = "MainFrame"
-	frame.Active = true
-	frame.Draggable = false
-	frame.ClipsDescendants = true
-	frame.BackgroundTransparency = 0.2
-	frame.AnchorPoint = Vector2.new(0.5, 0.5)
-	frame.ZIndex = 10
-	frame.Visible = config.visible
-	frame.Parent = mainUI
-	frame.AutomaticSize = Enum.AutomaticSize.Y
-	frame.ClipsDescendants = true
-	frame:SetAttribute("Locked", false)
-	frame:ApplyDescription(Enum.ApplyDescriptionMode.ReuseProperties)
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -50, 0, 40)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Text = config.title
+Title.TextSize = 18
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.Gotham
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Main
 
-	local uicorner = Instance.new("UICorner", frame)
-	uicorner.CornerRadius = UDim.new(0, 10)
+-- Close and Destroy buttons
+local Close = Instance.new("TextButton")
+Close.Text = "X"
+Close.Size = UDim2.new(0, 25, 0, 25)
+Close.Position = UDim2.new(1, -30, 0, 7)
+Close.BackgroundTransparency = 1
+Close.TextColor3 = Color3.fromRGB(255, 80, 80)
+Close.Font = Enum.Font.GothamBold
+Close.TextSize = 18
+Close.Parent = Main
 
-	local title = Instance.new("TextLabel", frame)
-	title.Size = UDim2.new(1, -30, 0, 30)
-	title.Position = UDim2.new(0, 5, 0, 0)
-	title.BackgroundTransparency = 1
-	title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	title.TextSize = 16
-	title.Font = Enum.Font.SourceSansSemibold
-	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.Name = "Title"
-	title.Text = config.title
+local DestroyBtn = Instance.new("TextButton")
+DestroyBtn.Text = "!"
+DestroyBtn.Size = UDim2.new(0, 25, 0, 25)
+DestroyBtn.Position = UDim2.new(1, -60, 0, 7)
+DestroyBtn.BackgroundTransparency = 1
+DestroyBtn.TextColor3 = Color3.fromRGB(255, 255, 0)
+DestroyBtn.Font = Enum.Font.GothamBold
+DestroyBtn.TextSize = 18
+DestroyBtn.Parent = Main
 
-	local xBtn = Instance.new("TextButton", frame)
-	xBtn.Size = UDim2.new(0, 20, 0, 20)
-	xBtn.Position = UDim2.new(1, -25, 0, 5)
-	xBtn.Text = "X"
-	xBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-	xBtn.TextColor3 = Color3.new(1, 1, 1)
-	xBtn.Font = Enum.Font.SourceSans
-	xBtn.TextSize = 14
-	xBtn.Name = "CloseBtn"
+-- Scrollable content
+local Content = Instance.new("ScrollingFrame")
+Content.Size = UDim2.new(1, -20, 1, -50)
+Content.Position = UDim2.new(0, 10, 0, 45)
+Content.CanvasSize = UDim2.new(0, 0, 0, 0)
+Content.ScrollBarThickness = 4
+Content.BackgroundTransparency = 1
+Content.Parent = Main
 
-	local uilist = Instance.new("UIListLayout", frame)
-	uilist.SortOrder = Enum.SortOrder.LayoutOrder
-	uilist.Padding = UDim.new(0, 5)
-	uilist.VerticalAlignment = Enum.VerticalAlignment.Top
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Padding = UDim.new(0, 6)
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Parent = Content
 
-	local contentPad = Instance.new("UIPadding", frame)
-	contentPad.PaddingTop = UDim.new(0, 35)
-	contentPad.PaddingLeft = UDim.new(0, 10)
-	contentPad.PaddingRight = UDim.new(0, 10)
-	contentPad.PaddingBottom = UDim.new(0, 10)
+-- Scroll update
+UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    Content.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
+end)
 
-	xBtn.MouseButton1Click:Connect(function()
-		frame.Visible = false
-	end)
+-- Button Function
+function ui:addButton(text, callback, opts)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 35)
+    btn.Text = (opts and opts.icon and (opts.icon .. " ") or "") .. text
+    btn.TextSize = 16
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.Parent = Content
 
-	frame.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = true
-			inputStart = input.Position
-			dragStart = frame.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
-			end)
-		end
-	end)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = config.cornerRadius
+    corner.Parent = btn
 
-	UIS.InputChanged:Connect(function(input)
-		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-			local delta = input.Position - inputStart
-			frame.Position = dragStart + UDim2.new(0, delta.X, 0, delta.Y)
-		end
-	end)
+    btn.MouseButton1Click:Connect(callback)
 end
 
-function SecureUI:setConfig(cfg)
-	for k, v in pairs(cfg) do
-		if config[k] ~= nil then
-			config[k] = v
-		end
-	end
-	if mainUI and mainUI:FindFirstChild("MainFrame") then
-		local frame = mainUI.MainFrame
-		frame.Size = UDim2.new(0, config.width, 0, config.height)
-		local title = frame:FindFirstChild("Title")
-		if title then title.Text = config.title end
-	end
+-- Slider Function
+function ui:addSlider(label, callback, opts)
+    opts = opts or { min = 0, max = 100 }
+
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, 0, 0, 40)
+    container.BackgroundTransparency = 1
+    container.Parent = Content
+
+    local sliderLabel = Instance.new("TextLabel")
+    sliderLabel.Size = UDim2.new(1, 0, 0, 18)
+    sliderLabel.Text = label
+    sliderLabel.TextSize = 14
+    sliderLabel.BackgroundTransparency = 1
+    sliderLabel.TextColor3 = Color3.new(1, 1, 1)
+    sliderLabel.Font = Enum.Font.Gotham
+    sliderLabel.Parent = container
+
+    local slider = Instance.new("TextButton")
+    slider.Size = UDim2.new(1, 0, 0, 15)
+    slider.Position = UDim2.new(0, 0, 0, 20)
+    slider.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    slider.Text = ""
+    slider.Parent = container
+
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new(0, 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+    fill.Parent = slider
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = config.cornerRadius
+    corner.Parent = slider
+
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = config.cornerRadius
+    fillCorner.Parent = fill
+
+    slider.MouseButton1Down:Connect(function()
+        local conn
+        conn = game:GetService("RunService").RenderStepped:Connect(function()
+            local mouse = UserInputService:GetMouseLocation().X
+            local pos = math.clamp(mouse - slider.AbsolutePosition.X, 0, slider.AbsoluteSize.X)
+            fill.Size = UDim2.new(0, pos, 1, 0)
+            local value = math.floor((pos / slider.AbsoluteSize.X) * (opts.max - opts.min) + opts.min)
+            callback(value)
+        end)
+        UserInputService.InputEnded:Wait()
+        conn:Disconnect()
+    end)
 end
 
-function SecureUI:addButton(text, callback)
-	local frame = mainUI.MainFrame
-	local btn = Instance.new("TextButton", frame)
-	btn.Size = UDim2.new(1, -20, 0, 30)
-	btn.Text = text
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	btn.Font = Enum.Font.SourceSans
-	btn.TextSize = 16
-	btn.Name = "SecureButton"
-
-	local uicorner = Instance.new("UICorner", btn)
-	uicorner.CornerRadius = UDim.new(0, 6)
-
-	btn.MouseButton1Click:Connect(function()
-		pcall(callback)
-	end)
+-- Music Function
+function ui:addMusic(id)
+    local sound = Instance.new("Sound", game:GetService("SoundService"))
+    sound.SoundId = "rbxassetid://" .. tostring(id)
+    sound.Looped = true
+    sound.Volume = 0.5
+    sound:Play()
 end
 
-function SecureUI:addSlider(label, callback, opts)
-	local min = opts and opts.min or 0
-	local max = opts and opts.max or 100
-
-	local frame = mainUI.MainFrame
-	local container = Instance.new("Frame", frame)
-	container.Size = UDim2.new(1, -20, 0, 40)
-	container.BackgroundTransparency = 1
-
-	local lbl = Instance.new("TextLabel", container)
-	lbl.Size = UDim2.new(1, 0, 0.5, 0)
-	lbl.BackgroundTransparency = 1
-	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-	lbl.Text = label
-	lbl.Font = Enum.Font.SourceSans
-	lbl.TextSize = 14
-
-	local slider = Instance.new("TextButton", container)
-	slider.Size = UDim2.new(1, 0, 0.5, 0)
-	slider.Position = UDim2.new(0, 0, 0.5, 0)
-	slider.Text = tostring(min)
-	slider.TextColor3 = Color3.new(1, 1, 1)
-	slider.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-	slider.Font = Enum.Font.SourceSans
-	slider.TextSize = 14
-
-	local uicorner = Instance.new("UICorner", slider)
-	uicorner.CornerRadius = UDim.new(0, 4)
-
-	local value = min
-	slider.MouseButton1Click:Connect(function()
-		value = value + 1
-		if value > max then value = min end
-		slider.Text = tostring(value)
-		pcall(callback, value)
-	end)
+-- Set Title / Size
+function ui:setConfig(conf)
+    if conf.title then Title.Text = conf.title end
+    if conf.width and conf.height then
+        Main.Size = UDim2.new(0, conf.width, 0, conf.height)
+        Main.Position = UDim2.new(0.5, -conf.width/2, 0.5, -conf.height/2)
+    end
 end
 
-function SecureUI:addMusic(id)
-	local s = Instance.new("Sound", workspace)
-	s.SoundId = "rbxassetid://" .. id
-	s.Volume = 1
-	s.Looped = true
-	s:Play()
+-- Toggle UI
+function ui:toggle()
+    open = not open
+    Main.Visible = open
 end
 
-function SecureUI:toggle()
-	if not mainUI or not mainUI:FindFirstChild("MainFrame") then return end
-	mainUI.MainFrame.Visible = not mainUI.MainFrame.Visible
+-- Setup
+function ui:setup()
+    print("[UI] Ready.")
 end
 
-return SecureUI
+-- Button Events
+Close.MouseButton1Click:Connect(ui.toggle)
+DestroyBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        ui:toggle()
+    end
+end)
+
+return ui
