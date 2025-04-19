@@ -4,31 +4,26 @@ local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local SoundService = game:GetService("SoundService")
 
--- UI Container
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "EZ_UI"
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Main UI Frame
 local main = Instance.new("Frame")
 main.Size = UDim2.new(0, 270, 0, 320)
 main.Position = UDim2.new(0.5, -135, 0.5, -160)
 main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-main.BorderSizePixel = 0
 main.BackgroundTransparency = 0.1
-main.Name = "MainUI"
+main.BorderSizePixel = 0
 main.Active = true
-main.Draggable = false
+main.Name = "MainUI"
 main.Parent = screenGui
 
--- Round corners
-local round = Instance.new("UICorner")
+local round = Instance.new("UICorner", main)
 round.CornerRadius = UDim.new(0, 10)
-round.Parent = main
 
--- Title bar
+-- Title Bar
 local titleBar = Instance.new("TextLabel")
 titleBar.Size = UDim2.new(1, 0, 0, 30)
 titleBar.BackgroundTransparency = 1
@@ -37,8 +32,10 @@ titleBar.TextColor3 = Color3.new(1,1,1)
 titleBar.Font = Enum.Font.GothamBold
 titleBar.TextSize = 16
 titleBar.TextXAlignment = Enum.TextXAlignment.Left
-titleBar.PaddingLeft = UDim.new(0, 10)
 titleBar.Parent = main
+
+local padding = Instance.new("UIPadding", titleBar)
+padding.PaddingLeft = UDim.new(0, 10)
 
 -- X Button
 local xBtn = Instance.new("TextButton")
@@ -50,19 +47,19 @@ xBtn.TextColor3 = Color3.new(1,1,1)
 xBtn.Font = Enum.Font.GothamBold
 xBtn.TextSize = 16
 xBtn.Parent = main
-local xCorner = Instance.new("UICorner", xBtn)
-xCorner.CornerRadius = UDim.new(0, 6)
+Instance.new("UICorner", xBtn).CornerRadius = UDim.new(0, 6)
+
 xBtn.MouseButton1Click:Connect(function()
 	main.Visible = false
 end)
 
--- Drag handling (uses titleBar)
+-- Drag system
 local dragging = false
 local offset
 titleBar.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = true
-		offset = Vector2.new(input.Position.X - main.Position.X.Offset, input.Position.Y - main.Position.Y.Offset)
+		offset = Vector2.new(input.Position.X - main.AbsolutePosition.X, input.Position.Y - main.AbsolutePosition.Y)
 	end
 end)
 UIS.InputEnded:Connect(function(input)
@@ -84,10 +81,9 @@ container.BackgroundTransparency = 1
 container.ClipsDescendants = true
 container.Parent = main
 
-local layout = Instance.new("UIListLayout")
+local layout = Instance.new("UIListLayout", container)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Padding = UDim.new(0, 6)
-layout.Parent = container
 
 -- BUTTON
 function ui:addButton(text, callback, opts)
@@ -102,9 +98,7 @@ function ui:addButton(text, callback, opts)
 	btn.BackgroundTransparency = opts.transparency or 0
 	btn.Parent = container
 	if opts.rounded ~= false then
-		local c = Instance.new("UICorner")
-		c.CornerRadius = UDim.new(0, 6)
-		c.Parent = btn
+		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 	end
 	btn.MouseButton1Click:Connect(callback)
 end
@@ -135,9 +129,7 @@ function ui:addSlider(label, callback, opts)
 	bar.BackgroundTransparency = opts.transparency or 0
 	bar.Parent = frame
 	if opts.rounded ~= false then
-		local c = Instance.new("UICorner")
-		c.CornerRadius = UDim.new(0, 6)
-		c.Parent = bar
+		Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 6)
 	end
 
 	bar.MouseButton1Down:Connect(function()
