@@ -90,4 +90,4 @@ game:GetService("UserInputService").InputBegan:Connect(function(input)
 end)
 
 
-# PLEASE DONT MIDN THE FUALTY COPY BUTTON ON THE README.DM #
+# PLEASE DONT MIND THE FUALTY COPY BUTTON ON THE README.DM #
